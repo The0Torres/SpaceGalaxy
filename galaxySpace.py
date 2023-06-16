@@ -1,122 +1,130 @@
-"""
-Pygame :: GALAXIA
-Especificaciones mínimas:
-1 La nave propia solo podrá moverse de izquierda a derecha o viceversa,
-nunca hacia adelante o hacia atrás.
-2 Las naves deben efectuar disparos, tanto la propia como las enemigas.
-3 Utilizar movimientos aleatorios para las naves enemigas.
-4 Al final de cada partida se deberá guardar el SCORE junto con el nombre
-de usuario. En tal sentido, se deberá elaborar un ranking ordenado de
-mayor a menor puntuación, mostrando su respectivo nombre y puntuación.
-5 Incluir:
-o Archivos.
-o POO.
-o Texto para ir mostrando el SCORE.
-o Eventos.A
-o Colisiones.
-o Manejo de rectángulo.
-o Temporizador.
-o Imágenes.
-o Audios.
-o Ranking de puntuaciones
-"""
 import pygame
 import colores
 import enemigos
 from personaje import Personaje
+from pantalla_puntuacion import usuario_puntuacion
 import random
+import sys
 
-ancho_pantalla = 1250
-largo_pantalla = 1000
 
-score = 0
 
-pygame.init()
+def juego(ancho_pantalla, largo_pantalla):
+    pygame.init()
 
-pantalla = pygame.display.set_mode((ancho_pantalla,largo_pantalla))
-pygame.display.set_caption("Space galaxy")
-reloj = pygame.time.Clock()
+    pygame.mixer.init()
+    audio_disparo = pygame.mixer.Sound(r"Python utn\jueguitos.py\sonidos\x wing tiro.mp3")
+    tie_disparo = pygame.mixer.Sound(r"Python utn\jueguitos.py\sonidos\tie tiro.mp3")
+    tie_disparo.set_volume(0.2)
 
-imagen_espacio = pygame.image.load("Python utn\jueguitos.py\imagenes\spacefondo.png")
-imagen_espacio = pygame.transform.scale(imagen_espacio,(ancho_pantalla, largo_pantalla))
+    score = 0
+    nivel = 1
+    nivel_completado = False
+    tiempo_nivel_completado = 0
 
-ties = enemigos.crear_enemigos(10)
+    pantalla = pygame.display.set_mode((ancho_pantalla, largo_pantalla))
+    pygame.display.set_caption("Space galaxy")
+    reloj = pygame.time.Clock()
 
-#Creacion de mi personaje (constructor)
-xwing = Personaje()
+    imagen_espacio = pygame.image.load("Python utn\jueguitos.py\imagenes\spacefondo.png")
+    imagen_espacio = pygame.transform.scale(imagen_espacio, (ancho_pantalla, largo_pantalla))
 
-flag_correr = True
-while flag_correr:
-    lista_evento = pygame.event.get()
-    for evento in lista_evento:
-        if evento.type == pygame.QUIT:
-            flag_correr = False
+    ties = enemigos.crear_enemigos(8)
 
-        if not xwing.vivo:
-            xwing.misiles = []
-            continue
+    xwing = Personaje()
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_d]:
-            xwing.rect.x += 20
-        if keys[pygame.K_a]:
-            xwing.rect.x -= 20
+    flag_correr = True
+    while flag_correr:
+        lista_evento = pygame.event.get()
+        for evento in lista_evento:
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-        if evento.type == pygame.MOUSEBUTTONDOWN:
-            if evento.button == pygame.BUTTON_LEFT:
-                xwing.disparar()
+            if not xwing.vivo:
+                xwing.misiles = []
+                continue
 
-        if xwing.rect.left < 0:
-            xwing.rect.left = 0
-        elif xwing.rect.right > ancho_pantalla:
-            xwing.rect.right = ancho_pantalla
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_d]:
+                xwing.rect.x += 20
+            if keys[pygame.K_a]:
+                xwing.rect.x -= 20
 
-        if xwing.rect.top < 0:
-            xwing.rect.top = 0
-        elif xwing.rect.bottom > largo_pantalla:
-            xwing.rect.bottom = largo_pantalla
+            if evento.type == pygame.MOUSEBUTTONDOWN:
+                if evento.button == pygame.BUTTON_LEFT:
+                    xwing.disparar()
+                    audio_disparo.play()
 
-    reloj.tick(144)
-    pantalla.blit(imagen_espacio,imagen_espacio.get_rect())
+            if xwing.rect.left < 0:
+                xwing.rect.left = 0
+            elif xwing.rect.right > ancho_pantalla:
+                xwing.rect.right = ancho_pantalla
 
-    for misil in xwing.misiles:
-        misil.actualizar()
-        misil.dibujar(pantalla)
-        for personaje in ties:
-            if misil.rect.colliderect(personaje.rect):
-                score += 25
-                ties.remove(personaje)
-                xwing.misiles.remove(misil)
-                break
+            if xwing.rect.top < 0:
+                xwing.rect.top = 0
+            elif xwing.rect.bottom > largo_pantalla:
+                xwing.rect.bottom = largo_pantalla
 
-    font = pygame.font.SysFont("Arial", 20)
-    texto = font.render("SCORE: {0}".format(score),True, colores.YELLOW1)
-    pantalla.blit(texto,(10,10))
+        reloj.tick(144)
+        pantalla.blit(imagen_espacio, imagen_espacio.get_rect())
 
-    #dibujar mi personaje
-    if xwing.vivo == True:
-        xwing.dibujar(pantalla)
+        if xwing.vivo:
+            xwing.dibujar(pantalla)
 
-    for enemigo in ties:
-        enemigo.actualizar_posicion(pantalla)
-        enemigo.actualizar_pantalla(pantalla, xwing.rect)
-        if random.random() < 0.025:  # Ajusta el valor 0.1 según la probabilidad deseada
-            enemigo.disparar()
-        for misil in enemigo.misiles:
+        for misil in xwing.misiles:
             misil.actualizar()
             misil.dibujar(pantalla)
-            if misil.rect.colliderect(xwing.rect):
-                xwing.daño()
-                enemigo.misiles.remove(misil)
-                break
+            
+            for personaje in ties:
+                if misil.rect.colliderect(personaje.rect):
+                    score += 25
+                    ties.remove(personaje)
+                    xwing.misiles.remove(misil)
+                    
+                    break
 
-    if not xwing.vivo:
-        pantalla.fill((0, 0, 0))
-        font = pygame.font.SysFont("Arial", 80)
-        texto = font.render("Perdiste Burro", True, colores.YELLOW1)
-        texto_rect = texto.get_rect(center=(ancho_pantalla / 2, largo_pantalla / 2))
-        pantalla.blit(texto, texto_rect)
-        
-    pygame.display.flip()
+        font = pygame.font.SysFont("cambria", 20)
+        texto_score = font.render("SCORE: {0}".format(score), True, colores.YELLOW1)
+        pantalla.blit(texto_score, (10, 10))
 
-pygame.quit
+        for enemigo in ties:
+            enemigo.actualizar_posicion(pantalla)
+            enemigo.actualizar_pantalla(pantalla, xwing.rect)
+            if random.random() < 0.020:
+                enemigo.disparar()
+                tie_disparo.play()
+            for misil in enemigo.misiles:
+                misil.actualizar()
+                misil.dibujar(pantalla)
+                if misil.rect.colliderect(xwing.rect):
+                    xwing.daño()
+                    enemigo.misiles.remove(misil)
+                    break
+    
+        if not xwing.vivo:
+            xwing.explotar(pantalla)
+            usuario_puntuacion(pantalla,score)
+
+        if len(ties) == 0:
+            if not nivel_completado:
+                nivel_completado = True
+                tiempo_nivel_completado = pygame.time.get_ticks() + 1000
+                
+            else:
+                if pygame.time.get_ticks() >= tiempo_nivel_completado:
+                    nivel += 1
+                    nivel_completado = False
+                    ties = enemigos.crear_enemigos(8)
+
+                    font_nivel = pygame.font.SysFont("cambria", 50)
+                    texto_nivel = font_nivel.render("Nivel {0}".format(nivel), True, colores.YELLOW1)
+                    texto_nivel_rect = texto_nivel.get_rect(center=(ancho_pantalla // 2, largo_pantalla // 2))
+                    pantalla.blit(texto_nivel, texto_nivel_rect)
+                    xwing.misiles = []
+
+                    pygame.display.flip()
+                    pygame.time.wait(2000)
+
+        pygame.display.flip()
+
+    pygame.quit()
