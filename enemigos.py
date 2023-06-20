@@ -54,5 +54,5 @@ class Enemigo:
 def crear_enemigos (cantidad):
     lista_personajes = []
     for i in range(cantidad):
-        lista_personajes.append(Enemigo( 0+(i* random.choice([25, 125])), 0+(i* random.choice([25, 125])), 80, 80, 75 , 50))
+        lista_personajes.append(Enemigo( 0+(i* random.choice([25, 100])), 0+(i* random.choice([25, 100])), 80, 80, 75 , 50))
     return lista_personajes

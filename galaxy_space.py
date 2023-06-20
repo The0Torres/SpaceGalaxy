@@ -2,21 +2,13 @@ import pygame
 import sys
 import os
 import colores
-import pygame_gui
 from boton_click import Boton
 import sqlite3
 import enemigos
 from personaje import *
 import random
 
-
 pygame.init()
-
-gestor_interfaz = pygame_gui.UIManager((1250, 1000))
-
-entrada_texto = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((280, 400), (700, 80)),
-                                                    manager=gestor_interfaz,
-                                                    object_id='#nombre_id')
 
 reloj = pygame.time.Clock()
 
@@ -35,10 +27,26 @@ boton = pygame.image.load(r"Python utn\jueguitos.py\imagenes\boton transparente.
 boton = pygame.transform.scale(boton, (360, 80))
 
 def usuario_puntuacion(score):
+    font = pygame.font.SysFont("Cambria", 40)
+    texto_ingresado = ""
     nombre_ingresado = False
-    while True:
-        frecuencia_ui = reloj.tick(60) / 1000
+    rect_texto = pygame.Rect(275,425,140,65)
+    en_poscion = False
 
+    with sqlite3.connect("usuarios.db") as conexion:
+                        try:
+                            sentencia = '''CREATE TABLE IF NOT EXISTS usuarios
+                                (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                nombre TEXT,
+                                puntacion INTEGER
+                                )
+                                '''
+                            conexion.execute(sentencia)
+                        except sqlite3.OperationalError:
+                            print("La tabla usuarios ya existe")
+
+    while True:
         pantalla.fill((colores.BLACK))
 
         poscion_mouse = pygame.mouse.get_pos()
@@ -47,51 +55,52 @@ def usuario_puntuacion(score):
             if evento.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if evento.type == pygame.MOUSEBUTTONDOWN:
+                if rect_texto.collidepoint(evento.pos):
+                    en_poscion = True
+                else:
+                    en_poscion = False
 
-            if (evento.type == pygame_gui.UI_TEXT_ENTRY_FINISHED and
-                    evento.ui_object_id == '#nombre_id' and not nombre_ingresado):
-                nombre_usuario = evento.text
-
-                with sqlite3.connect("usuarios.db") as conexion:
-                    try:
-                        sentencia = '''CREATE TABLE IF NOT EXISTS usuarios
-                            (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            nombre TEXT,
-                            puntacion INTEGER
-                            )
-                            '''
-                        conexion.execute(sentencia)
-                        print("Se creó la tabla usuarios")
-                    except sqlite3.OperationalError:
-                        print("La tabla usuarios ya existe")
-
-                    try:
-                        conexion.execute("INSERT INTO usuarios (nombre, puntacion) VALUES (?, ?)", (nombre_usuario, score))
-                        conexion.commit()
-                        nombre_ingresado = True
-                        print("Registro insertado correctamente")
-                    except:
-                        print("Error al insertar el registro")
-
-            gestor_interfaz.process_events(evento)
+            if evento.type == pygame.KEYDOWN:
+                if en_poscion and not nombre_ingresado:  # Solo permitir entrada de texto si no se ha ingresado un nombre
+                    if evento.key == pygame.K_BACKSPACE:
+                        texto_ingresado = texto_ingresado[0:-1]
+                    elif evento.key == pygame.K_RETURN:  # Comprobar si se presiona la tecla Enter
+                        print("Nombre ingresado:", texto_ingresado)
+                        with sqlite3.connect("usuarios.db") as conexion:
+                            cursor = conexion.cursor()
+                            cursor.execute("INSERT INTO usuarios (nombre, puntacion) VALUES (?, ?)", (texto_ingresado, score))
+                            conexion.commit()
+                        nombre_ingresado = True  # Establecer la bandera en True para indicar que se ha ingresado un nombre
+                    else:
+                        texto_ingresado += evento.unicode
 
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 if boton_salir.verificarClick(poscion_mouse):
-                    pygame.quit()
-                    sys.exit()
+                        pygame.quit()
+                        sys.exit()
                 if boton_menu.verificarClick(poscion_mouse):
-                    menu_galaxy()
+                        menu_galaxy()
 
-        gestor_interfaz.update(frecuencia_ui)
 
-        gestor_interfaz.draw_ui(pantalla)
+        if en_poscion and not nombre_ingresado:
+            color_actual = colores.GRAY
+        else:
+            color_actual = colores.GRAY10
+
+        pygame.draw.rect(pantalla,color_actual, rect_texto)
+
+        superficie_texto = font.render(texto_ingresado, True, colores.YELLOW1)
+        pantalla.blit(superficie_texto,rect_texto)
+
+        rect_texto.w = max(725,superficie_texto.get_width() + 10)
+
         font = pygame.font.SysFont("cambria", 80)
         texto = font.render(f"Puntuacion: {score}", True, colores.YELLOW1)
         pantalla.blit(texto, (365, 100))
         font = pygame.font.SysFont("cambria", 60)
         if nombre_ingresado:
-            texto = font.render("Nombre ingresado: {0}".format(nombre_usuario), True, colores.YELLOW1)
+            texto = font.render("Nombre ingresado: {0}".format(texto_ingresado), True, colores.YELLOW1)
         else:
             texto = font.render("Ingrese su nombre de usuario", True, colores.YELLOW1)
         pantalla.blit(texto, (250, 300))
@@ -100,12 +109,14 @@ def usuario_puntuacion(score):
         boton_menu = Boton(None , 625, 650, "Menu")
 
         for botones in [boton_menu , boton_salir]:
-            botones.cambiarColor(poscion_mouse)
-            botones.actualizar()
+                botones.cambiarColor(poscion_mouse)
+                botones.actualizar()
 
         pygame.display.update()
 
 def puntuaciones():
+    pygame.display.set_caption("Puntuaciones")
+    
     while True:
         pantalla.blit(fondo_menu, fondo_menu.get_rect())
 
@@ -148,7 +159,6 @@ def puntuaciones():
         pygame.display.update()
 
 def juego():
-
     pygame.mixer.init()
     audio_disparo = pygame.mixer.Sound(r"Python utn\jueguitos.py\sonidos\x wing tiro.mp3")
     tie_disparo = pygame.mixer.Sound(r"Python utn\jueguitos.py\sonidos\tie tiro.mp3")
@@ -178,10 +188,6 @@ def juego():
                 pygame.quit()
                 sys.exit()
 
-            if not xwing.vivo:
-                xwing.misiles = []
-                continue
-
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
                 xwing.rect.x += 20
@@ -209,6 +215,7 @@ def juego():
         if xwing.vivo:
             xwing.dibujar(pantalla)
         elif not xwing.vivo:
+            xwing.misiles = []
             xwing.explotar(pantalla)
             if xwing.explosion_index >= len(xwing.explosion_frames):
                 usuario_puntuacion(score)
@@ -223,16 +230,10 @@ def juego():
                     ties.remove(personaje)
                     xwing.misiles.remove(misil)
                     
-                    
-
-        font = pygame.font.SysFont("cambria", 20)
-        texto_score = font.render("SCORE: {0}".format(score), True, colores.YELLOW1)
-        pantalla.blit(texto_score, (10, 10))
-
         for enemigo in ties:
             enemigo.actualizar_posicion(pantalla)
             enemigo.actualizar_pantalla(pantalla, xwing.rect)
-            if random.random() < 0.020:
+            if random.random() < 0.02:
                 enemigo.disparar()
                 tie_disparo.play()
             for misil in enemigo.misiles:
@@ -242,13 +243,15 @@ def juego():
                     xwing.daño()
                     enemigo.misiles.remove(misil)
                     break
-    
 
+        font = pygame.font.SysFont("cambria", 20)
+        texto_score = font.render("SCORE: {0}".format(score), True, colores.YELLOW1)
+        pantalla.blit(texto_score, (10, 10))
+    
         if len(ties) == 0:
             if not nivel_completado:
                 nivel_completado = True
-                tiempo_nivel_completado = pygame.time.get_ticks() + 1000
-                
+                tiempo_nivel_completado = pygame.time.get_ticks() + 1000            
             else:
                 if pygame.time.get_ticks() >= tiempo_nivel_completado:
                     nivel += 1
@@ -278,13 +281,13 @@ def menu_galaxy():
         poscion_mouse = pygame.mouse.get_pos()
 
         font = pygame.font.SysFont("cambria", 100)
-        texto = font.render("Space Galaxy", True, colores.YELLOW1)
+        texto = font.render("Capitan del Espacio", True, colores.YELLOW1)
 
         boton_juego = Boton(boton , 625, 300, "Jugar")
         boton_score = Boton(boton , 625, 550, "Calificaciones")
         boton_salir = Boton(boton , 625, 800, "Salir")
 
-        pantalla.blit(texto,(375,10))
+        pantalla.blit(texto,(240,10))
 
         for botones in [boton_juego , boton_score , boton_salir]:
             botones.cambiarColor(poscion_mouse)
