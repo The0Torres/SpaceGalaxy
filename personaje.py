@@ -54,7 +54,7 @@ class Personaje:
 
     def daño(self):
         self.corazones -= 1
-        if self.corazones == 0:
+        if self.corazones < 1:
             self.vivo = False
         else:
             self.indice_daño = (self.indice_daño + 1) % len(self.frames_daño)

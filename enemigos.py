@@ -12,10 +12,12 @@ class Enemigo:
         self.rect.y = y
         self.rect.width = width
         self.rect.height = height
-        self.velocidad_x = random.choice([4, 6])
-        self.velocidad_y = random.choice([4, 6])
+        self.velocidad_x = random.choice([4, 5])
+        self.velocidad_y = random.choice([4, 5])
         self.visible = True
         self.misiles = []
+        self.vivo = True
+        self.corazones = 1
 
     def dibujar(self, pantalla):
         pantalla.blit(self.imagen, self.rect)
@@ -28,12 +30,14 @@ class Enemigo:
         misil2 = Misil(x - 30, y + 75, imagen_misil, "abajo")
         self.misiles.append(misil1)
         self.misiles.append(misil2)
+    
+    def daño(self):
+        self.corazones -= 1
+        if self.corazones < 1:
+            self.vivo = False
 
     def actualizar_pantalla(self, pantalla, rect):
-        if self.visible == True and rect.colliderect(self.rect):
-            self.visible = False
-
-        if self.visible == True:
+        if self.vivo== True:
             pantalla.blit(self.imagen, self.rect)
 
     def actualizar_posicion(self, pantalla):
@@ -51,8 +55,49 @@ class Enemigo:
                 self.rect.bottom = pantalla.get_height() / 1.5
                 self.velocidad_y *= -1
 
-def crear_enemigos (cantidad):
+class Bomber(Enemigo):
+    def __init__(self, x, y, ancho, alto, width=100, height=100):
+        super().__init__(x, y, ancho, alto, width, height)
+        self.imagen = pygame.image.load(r"Python utn\jueguitos.py\imagenes\tie bomber.png")
+        self.imagen = pygame.transform.scale(self.imagen, (ancho, alto))
+        self.velocidad_x = random.choice([2, 3])
+        self.velocidad_y = random.choice([2, 3])
+        self.corazones = 4
+
+    def disparar(self):
+        x = self.rect.centerx
+        y = self.rect.y
+        imagen_misil = pygame.image.load(r"Python utn\jueguitos.py\imagenes\shotgreen.png")
+        misil = Misil(x + 5, y + 75, imagen_misil, "abajo")
+        self.misiles.append(misil)
+
+class Defender(Enemigo):
+    def __init__(self, x, y, ancho, alto, width=100, height=100):
+        super().__init__(x, y, ancho, alto, width, height)
+        self.imagen = pygame.image.load(r"Python utn\jueguitos.py\imagenes\tie defender.png")
+        self.imagen = pygame.transform.scale(self.imagen, (ancho, alto))
+        self.velocidad_x = random.choice([6, 7])
+        self.velocidad_y = random.choice([6, 7])
+        self.corazones = 3
+
+    def disparar(self):
+        x = self.rect.centerx
+        y = self.rect.y
+        imagen_misil = pygame.image.load(r"Python utn\jueguitos.py\imagenes\shotgreen.png")
+        misil1 = Misil(x + 20, y + 75, imagen_misil, "abajo")
+        misil2 = Misil(x - 20, y + 75, imagen_misil, "abajo")
+        misil3 = Misil(x, y + 65, imagen_misil, "abajo")
+        self.misiles.append(misil1)
+        self.misiles.append(misil2)
+        self.misiles.append(misil3)
+
+def crear_enemigos (cantidad,modelo):
     lista_personajes = []
     for i in range(cantidad):
-        lista_personajes.append(Enemigo( 0+(i* random.choice([25, 100])), 0+(i* random.choice([25, 100])), 80, 80, 75 , 50))
+        if modelo == "defender":
+            lista_personajes.append(Defender( 0+(i* random.choice([25, 100])), 0+(i* random.choice([25, 100])), 80, 80, 75 , 50))
+        elif modelo == "bomber":
+            lista_personajes.append(Bomber( 0+(i* random.choice([25, 100])), 0+(i* random.choice([25, 100])), 80, 80, 75 , 50))
+        elif modelo == "tie":
+            lista_personajes.append(Enemigo( 0+(i* random.choice([25, 100])), 0+(i* random.choice([25, 100])), 80, 80, 75 , 50))
     return lista_personajes

@@ -96,16 +96,21 @@ def usuario_puntuacion(score):
         rect_texto.w = max(725,superficie_texto.get_width() + 10)
 
         font = pygame.font.SysFont("cambria", 80)
+        texto = font.render(f"Juego Finalizado", True, colores.YELLOW1)
+        pantalla.blit(texto, (340, 20))
+
+        font = pygame.font.SysFont("cambria", 40)
         texto = font.render(f"Puntuacion: {score}", True, colores.YELLOW1)
-        pantalla.blit(texto, (365, 100))
+        pantalla.blit(texto, (475, 200))
+
         font = pygame.font.SysFont("cambria", 60)
         if nombre_ingresado:
             texto = font.render("Nombre ingresado: {0}".format(texto_ingresado), True, colores.YELLOW1)
         else:
             texto = font.render("Ingrese su nombre de usuario", True, colores.YELLOW1)
-        pantalla.blit(texto, (250, 300))
+        pantalla.blit(texto, (255, 325))
 
-        boton_salir = Boton(None, 625, 850, "Salir")
+        boton_salir = Boton(None, 615, 850, "Salir")
         boton_menu = Boton(None , 625, 650, "Menu")
 
         for botones in [boton_menu , boton_salir]:
@@ -161,8 +166,9 @@ def puntuaciones():
 def juego():
     pygame.mixer.init()
     audio_disparo = pygame.mixer.Sound(r"Python utn\jueguitos.py\sonidos\x wing tiro.mp3")
+    audio_disparo.set_volume(0.1)
     tie_disparo = pygame.mixer.Sound(r"Python utn\jueguitos.py\sonidos\tie tiro.mp3")
-    tie_disparo.set_volume(0.2)
+    tie_disparo.set_volume(0.1)
 
     score = 0
     nivel = 1
@@ -176,9 +182,15 @@ def juego():
     imagen_espacio = pygame.image.load("Python utn\jueguitos.py\imagenes\spacefondo.png")
     imagen_espacio = pygame.transform.scale(imagen_espacio, (ancho_pantalla, largo_pantalla))
 
-    ties = enemigos.crear_enemigos(2)
+    ties = enemigos.crear_enemigos(8, "tie")
 
     xwing = Personaje()
+
+    
+
+    segundos = 1  
+    segundos_que_pasan = 0
+    tiempo_restante = 120
 
     flag_correr = True
     while flag_correr:
@@ -209,6 +221,12 @@ def juego():
             elif xwing.rect.bottom > largo_pantalla:
                 xwing.rect.bottom = largo_pantalla
 
+
+        segundos_que_pasan += reloj.tick(144) / 1000 
+        if segundos_que_pasan >= segundos:
+            segundos_que_pasan = 0
+            tiempo_restante -= 1
+
         reloj.tick(144)
         pantalla.blit(imagen_espacio, imagen_espacio.get_rect())
 
@@ -226,9 +244,11 @@ def juego():
             
             for personaje in ties:
                 if misil.rect.colliderect(personaje.rect):
-                    score += 25
-                    ties.remove(personaje)
+                    personaje.daño()
                     xwing.misiles.remove(misil)
+                    if personaje.corazones < 1:
+                        score += 50
+                        ties.remove(personaje)
                     
         for enemigo in ties:
             enemigo.actualizar_posicion(pantalla)
@@ -243,10 +263,17 @@ def juego():
                     xwing.daño()
                     enemigo.misiles.remove(misil)
                     break
+        
+        if tiempo_restante == 0:
+            xwing.vivo = False
 
         font = pygame.font.SysFont("cambria", 20)
         texto_score = font.render("SCORE: {0}".format(score), True, colores.YELLOW1)
         pantalla.blit(texto_score, (10, 10))
+
+        texto_temporizador = font.render(f"Tiempo: {tiempo_restante} s", True, colores.YELLOW1)
+        pantalla.blit(texto_temporizador, (10,30))
+
     
         if len(ties) == 0:
             if not nivel_completado:
@@ -254,10 +281,21 @@ def juego():
                 tiempo_nivel_completado = pygame.time.get_ticks() + 1000            
             else:
                 if pygame.time.get_ticks() >= tiempo_nivel_completado:
+                    score += tiempo_restante
                     nivel += 1
                     i += 1
                     nivel_completado = False
-                    ties = enemigos.crear_enemigos(2 + i)
+
+                    if nivel == 2:
+                        ties = enemigos.crear_enemigos(8, "bomber")
+                    elif nivel == 3:
+                        ties = enemigos.crear_enemigos(8, "defender")
+                    else:
+                        usuario_puntuacion(score)
+                        pygame.quit()
+                        sys.exit()
+
+                    tiempo_restante = 300
 
                     font_nivel = pygame.font.SysFont("cambria", 50)
                     texto_nivel = font_nivel.render("Nivel {0}".format(nivel), True, colores.YELLOW1)
