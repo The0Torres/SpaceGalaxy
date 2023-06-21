@@ -5,6 +5,7 @@ from colores import*
 import pygame
 
 def getSuperficies(path, filas, columnas,tamano=None):
+    #Toma cuantas imagenes hay en un sprite
     lista = []
     superficie_imagen = pygame.image.load(path)
     if tamano == "chico":
@@ -34,7 +35,7 @@ class Personaje:
         self.vivo = True
         self.corazones = 5
         self.explosion_frames = getSuperficies(r"Python utn\jueguitos.py\imagenes\pngwing.com.png", 6, 8)
-        self.explosion_index = 0
+        self.explosion_indice = 0
         self.frames_daño = getSuperficies(r"Python utn\jueguitos.py\imagenes\spritesheet.png", 1, 6, tamano="chico")
         self.indice_daño = 0
 
@@ -47,8 +48,10 @@ class Personaje:
         x = self.rect.centerx
         y = self.rect.y
         imagen_misil = pygame.image.load(r"Python utn\jueguitos.py\imagenes\shot.png")
+        #Posicion de los misiles
         misil1 = Misil(x + 38, y, imagen_misil, "arriba")
         misil2 = Misil(x - 38, y, imagen_misil, "arriba")
+        #Los agrega a la listas
         self.misiles.append(misil1)
         self.misiles.append(misil2)
 
@@ -57,12 +60,15 @@ class Personaje:
         if self.corazones < 1:
             self.vivo = False
         else:
+            #Se mueve un frame del sprite cuando le haccen daño
             self.indice_daño = (self.indice_daño + 1) % len(self.frames_daño)
 
     def explotar(self, pantalla):
-        if self.explosion_index < len(self.explosion_frames):
-            explosion_frame = self.explosion_frames[self.explosion_index]
+        if self.explosion_indice < len(self.explosion_frames):
+            explosion_frame = self.explosion_frames[self.explosion_indice]
+            #Toma la posicon del personaje
             explosion_rect = explosion_frame.get_rect(center=self.rect.center)
             pantalla.blit(explosion_frame, explosion_rect)
-            self.explosion_index += 1
+            #Avanza un frame hasta que termine el sprite
+            self.explosion_indice += 1
         

@@ -27,12 +27,14 @@ boton = pygame.image.load(r"Python utn\jueguitos.py\imagenes\boton transparente.
 boton = pygame.transform.scale(boton, (360, 80))
 
 def usuario_puntuacion(score):
+    #Pantalla cuando se pierde o se gana el juego
     font = pygame.font.SysFont("Cambria", 40)
     texto_ingresado = ""
     nombre_ingresado = False
     rect_texto = pygame.Rect(275,425,140,65)
     en_poscion = False
 
+    #Crea la base de datos
     with sqlite3.connect("usuarios.db") as conexion:
                         try:
                             sentencia = '''CREATE TABLE IF NOT EXISTS usuarios
@@ -56,13 +58,15 @@ def usuario_puntuacion(score):
                 pygame.quit()
                 sys.exit()
             if evento.type == pygame.MOUSEBUTTONDOWN:
+                #Verifica si se clickea en la entrada de texto
+                #Le cambia el color
                 if rect_texto.collidepoint(evento.pos):
                     en_poscion = True
                 else:
                     en_poscion = False
 
             if evento.type == pygame.KEYDOWN:
-                if en_poscion and not nombre_ingresado:  # Solo permitir entrada de texto si no se ha ingresado un nombre
+                if en_poscion and not nombre_ingresado:  # Solo permite entrada de texto si no se ha ingresado un nombre
                     if evento.key == pygame.K_BACKSPACE:
                         texto_ingresado = texto_ingresado[0:-1]
                     elif evento.key == pygame.K_RETURN:  # Comprobar si se presiona la tecla Enter
@@ -71,15 +75,17 @@ def usuario_puntuacion(score):
                             cursor = conexion.cursor()
                             cursor.execute("INSERT INTO usuarios (nombre, puntacion) VALUES (?, ?)", (texto_ingresado, score))
                             conexion.commit()
-                        nombre_ingresado = True  # Establecer la bandera en True para indicar que se ha ingresado un nombre
+                        nombre_ingresado = True  #Indica que se ha ingresado el nombre
                     else:
                         texto_ingresado += evento.unicode
 
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 if boton_salir.verificarClick(poscion_mouse):
+                        #Salir del juego
                         pygame.quit()
                         sys.exit()
                 if boton_menu.verificarClick(poscion_mouse):
+                        #Volver al menu
                         menu_galaxy()
 
 
@@ -105,6 +111,7 @@ def usuario_puntuacion(score):
 
         font = pygame.font.SysFont("cambria", 60)
         if nombre_ingresado:
+            #Muestra en pantalla cual fue el nombre ingresado
             texto = font.render("Nombre ingresado: {0}".format(texto_ingresado), True, colores.YELLOW1)
         else:
             texto = font.render("Ingrese su nombre de usuario", True, colores.YELLOW1)
@@ -133,10 +140,11 @@ def puntuaciones():
         if resultados:
             datos_disponibles = True
     except sqlite3.OperationalError:
-        # La base de datos no existe o la tabla no existe
+        #Verifica que la base de datos no existe
         datos_disponibles = False
 
     while True:
+        #Puntuciones en pantalla
         pantalla.blit(fondo_menu, fondo_menu.get_rect())
 
         poscion_mouse = pygame.mouse.get_pos()
@@ -160,6 +168,7 @@ def puntuaciones():
                 y += 50
                 posicion_juego += 1
         else:
+            #Mensaje si la base de datos no existe o no se han regristrados datos en ella
             font_no_datos = pygame.font.SysFont("cambria", 50)
             sin_data = font_no_datos.render("Datos aún no registrados", True, colores.YELLOW1)
             pantalla.blit(sin_data, (350, 300))
@@ -170,10 +179,10 @@ def puntuaciones():
                 sys.exit()
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 if boton_menu.verificarClick(poscion_mouse):
+                    #Volver al menu
                     menu_galaxy()
 
         pygame.display.update()
-
 
 def juego():
     pygame.mixer.init()
@@ -198,8 +207,6 @@ def juego():
 
     xwing = Personaje()
 
-    
-
     segundos = 1  
     segundos_que_pasan = 0
     tiempo_restante = 120
@@ -212,17 +219,21 @@ def juego():
                 pygame.quit()
                 sys.exit()
 
+            #Movimiento del personaje
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
                 xwing.rect.x += 20
             if keys[pygame.K_a]:
                 xwing.rect.x -= 20
 
+            #Disparar
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 if evento.button == pygame.BUTTON_LEFT:
                     xwing.disparar()
                     audio_disparo.play()
 
+
+            #Evita que el personaje se vaya de la pantalla
             if xwing.rect.left < 0:
                 xwing.rect.left = 0
             elif xwing.rect.right > ancho_pantalla:
@@ -234,6 +245,7 @@ def juego():
                 xwing.rect.bottom = largo_pantalla
 
 
+        #Temporizador
         segundos_que_pasan += reloj.tick(144) / 1000 
         if segundos_que_pasan >= segundos:
             segundos_que_pasan = 0
@@ -242,12 +254,15 @@ def juego():
         reloj.tick(144)
         pantalla.blit(imagen_espacio, imagen_espacio.get_rect())
 
+
+    
         if xwing.vivo:
             xwing.dibujar(pantalla)
         elif not xwing.vivo:
+            #Muerte del personaje
             xwing.misiles = []
             xwing.explotar(pantalla)
-            if xwing.explosion_index >= len(xwing.explosion_frames):
+            if xwing.explosion_indice >= len(xwing.explosion_frames):
                 usuario_puntuacion(score)
 
         for misil in xwing.misiles:
@@ -255,6 +270,7 @@ def juego():
             misil.dibujar(pantalla)
             
             for personaje in ties:
+                #Daño al enemigo
                 if misil.rect.colliderect(personaje.rect):
                     personaje.daño()
                     xwing.misiles.remove(misil)
@@ -265,12 +281,14 @@ def juego():
         for enemigo in ties:
             enemigo.actualizar_posicion(pantalla)
             enemigo.actualizar_pantalla(pantalla, xwing.rect)
+            #Posibilidad de disparo del enemigo
             if random.random() < 0.02:
                 enemigo.disparar()
                 tie_disparo.play()
             for misil in enemigo.misiles:
                 misil.actualizar()
                 misil.dibujar(pantalla)
+                #Daño al personaje
                 if misil.rect.colliderect(xwing.rect):
                     xwing.daño()
                     enemigo.misiles.remove(misil)
@@ -287,26 +305,30 @@ def juego():
         pantalla.blit(texto_temporizador, (10,30))
 
     
+        #Termina el nivel cuando matas a todos los enemigos
         if len(ties) == 0:
             if not nivel_completado:
                 nivel_completado = True
-                tiempo_nivel_completado = pygame.time.get_ticks() + 1000            
+                tiempo_nivel_completado = pygame.time.get_ticks() + 1000 #Espera un segundo en procesar que termina el nivel         
             else:
                 if pygame.time.get_ticks() >= tiempo_nivel_completado:
-                    score += tiempo_restante
+                    score += tiempo_restante #Suma los segundos restantes al score
                     nivel += 1
                     i += 1
                     nivel_completado = False
 
+                    #Cambia los enemigo cuando cambia de nivel
                     if nivel == 2:
                         ties = enemigos.crear_enemigos(8, "bomber")
                     elif nivel == 3:
                         ties = enemigos.crear_enemigos(8, "defender")
                     else:
+                        #Al terminar el nivel 3 termina el juego
                         usuario_puntuacion(score)
                         pygame.quit()
                         sys.exit()
 
+                    #Reinicia el temporizador
                     tiempo_restante = 300
 
                     font_nivel = pygame.font.SysFont("cambria", 50)
@@ -333,6 +355,7 @@ def menu_galaxy():
         font = pygame.font.SysFont("cambria", 100)
         texto = font.render("Capitan del Espacio", True, colores.YELLOW1)
 
+        #Botones para acceder a diferentes funciones
         boton_juego = Boton(boton , 625, 300, "Jugar")
         boton_score = Boton(boton , 625, 550, "Calificaciones")
         boton_salir = Boton(boton , 625, 800, "Salir")
@@ -348,6 +371,7 @@ def menu_galaxy():
                 pygame.quit()
                 sys.exit()
                 
+            #Si clickea en el boton se ejecuta la funcion
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 if boton_juego.verificarClick(poscion_mouse):
                     juego()
