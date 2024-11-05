@@ -25,7 +25,7 @@ def getSuperficies(path, filas, columnas,tamano=None):
 class Personaje:
     def __init__(self):
         self.score = 0
-        self.imagen = pygame.image.load(r"Python utn\jueguitos.py\imagenes\xwing.png")
+        self.imagen = pygame.image.load(r"imagenes\xwing.png")
         self.rect = self.imagen.get_rect()
         self.rect.y = 900
         self.rect.x = 560
@@ -34,9 +34,9 @@ class Personaje:
         self.misiles = []
         self.vivo = True
         self.corazones = 5
-        self.explosion_frames = getSuperficies(r"Python utn\jueguitos.py\imagenes\pngwing.com.png", 6, 8)
+        self.explosion_frames = getSuperficies(r"imagenes\pngwing.com.png", 6, 8)
         self.explosion_indice = 0
-        self.frames_daño = getSuperficies(r"Python utn\jueguitos.py\imagenes\spritesheet.png", 1, 6, tamano="chico")
+        self.frames_daño = getSuperficies(r"imagenes\spritesheet.png", 1, 6, tamano="chico")
         self.indice_daño = 0
 
     def dibujar(self, pantalla):
@@ -47,7 +47,7 @@ class Personaje:
     def disparar(self):
         x = self.rect.centerx
         y = self.rect.y
-        imagen_misil = pygame.image.load(r"Python utn\jueguitos.py\imagenes\shot.png")
+        imagen_misil = pygame.image.load(r"imagenes\shot.png")
         #Posicion de los misiles
         misil1 = Misil(x + 38, y, imagen_misil, "arriba")
         misil2 = Misil(x - 38, y, imagen_misil, "arriba")

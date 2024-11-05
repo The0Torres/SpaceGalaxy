@@ -20,10 +20,11 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'
 pantalla = pygame.display.set_mode((ancho_pantalla,largo_pantalla))
 pygame.display.set_caption("Menu") 
 
-fondo_menu = pygame.image.load("Python utn\jueguitos.py\imagenes\spacefondo.png")
+fondo_menu = pygame.image.load("imagenes\spacefondo.png")
 fondo_menu = pygame.transform.scale(fondo_menu,(ancho_pantalla, largo_pantalla))
 
-boton = pygame.image.load(r"Python utn\jueguitos.py\imagenes\boton transparente.png")
+boton = pygame.image.load("imagenes/boton transparente.png")
+
 boton = pygame.transform.scale(boton, (360, 80))
 
 def usuario_puntuacion(score):
@@ -186,9 +187,9 @@ def puntuaciones():
 
 def juego():
     pygame.mixer.init()
-    audio_disparo = pygame.mixer.Sound(r"Python utn\jueguitos.py\sonidos\x wing tiro.mp3")
+    audio_disparo = pygame.mixer.Sound(r"sonidos\x wing tiro.mp3")
     audio_disparo.set_volume(0.1)
-    tie_disparo = pygame.mixer.Sound(r"Python utn\jueguitos.py\sonidos\tie tiro.mp3")
+    tie_disparo = pygame.mixer.Sound(r"sonidos\tie tiro.mp3")
     tie_disparo.set_volume(0.1)
 
     score = 0
@@ -200,7 +201,7 @@ def juego():
     pantalla = pygame.display.set_mode((ancho_pantalla, largo_pantalla))
     pygame.display.set_caption("Space galaxy")
 
-    imagen_espacio = pygame.image.load("Python utn\jueguitos.py\imagenes\spacefondo.png")
+    imagen_espacio = pygame.image.load("imagenes\spacefondo.png")
     imagen_espacio = pygame.transform.scale(imagen_espacio, (ancho_pantalla, largo_pantalla))
 
     ties = enemigos.crear_enemigos(8, "tie")
@@ -329,7 +330,7 @@ def juego():
                         sys.exit()
 
                     #Reinicia el temporizador
-                    tiempo_restante = 300
+                    tiempo_restante = 120
 
                     font_nivel = pygame.font.SysFont("cambria", 50)
                     texto_nivel = font_nivel.render("Nivel {0}".format(nivel), True, colores.YELLOW1)

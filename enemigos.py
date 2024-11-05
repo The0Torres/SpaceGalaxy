@@ -5,7 +5,7 @@ from misiles import *
 
 class Enemigo:
     def __init__(self, x, y, ancho, alto, width=100, height=100):
-        self.imagen = pygame.image.load(r"Python utn\jueguitos.py\imagenes\cazaTie.png")
+        self.imagen = pygame.image.load(r"imagenes\cazaTie.png")
         self.imagen = pygame.transform.scale(self.imagen, (ancho, alto))
         self.rect = self.imagen.get_rect()
         self.rect.x = x
@@ -25,7 +25,7 @@ class Enemigo:
     def disparar(self):
         x = self.rect.centerx
         y = self.rect.y
-        imagen_misil = pygame.image.load(r"Python utn\jueguitos.py\imagenes\shotgreen.png")
+        imagen_misil = pygame.image.load(r"imagenes\shotgreen.png")
         misil1 = Misil(x + 38, y + 75, imagen_misil, "abajo")
         misil2 = Misil(x - 30, y + 75, imagen_misil, "abajo")
         self.misiles.append(misil1)
@@ -60,7 +60,7 @@ class Enemigo:
 class Bomber(Enemigo):
     def __init__(self, x, y, ancho, alto, width=100, height=100):
         super().__init__(x, y, ancho, alto, width, height)
-        self.imagen = pygame.image.load(r"Python utn\jueguitos.py\imagenes\tie bomber.png")
+        self.imagen = pygame.image.load(r"imagenes\tie bomber.png")
         self.imagen = pygame.transform.scale(self.imagen, (ancho, alto))
         #Enemigo con mas vida pero mas lento
         self.velocidad_x = random.choice([2, 3])
@@ -70,7 +70,7 @@ class Bomber(Enemigo):
     def disparar(self):
         x = self.rect.centerx
         y = self.rect.y
-        imagen_misil = pygame.image.load(r"Python utn\jueguitos.py\imagenes\shotgreen.png")
+        imagen_misil = pygame.image.load(r"imagenes\shotgreen.png")
         #Solo tiene un misil
         misil = Misil(x + 5, y + 75, imagen_misil, "abajo")
         self.misiles.append(misil)
@@ -78,7 +78,7 @@ class Bomber(Enemigo):
 class Defender(Enemigo):
     def __init__(self, x, y, ancho, alto, width=100, height=100):
         super().__init__(x, y, ancho, alto, width, height)
-        self.imagen = pygame.image.load(r"Python utn\jueguitos.py\imagenes\tie defender.png")
+        self.imagen = pygame.image.load(r"imagenes\tie defender.png")
         self.imagen = pygame.transform.scale(self.imagen, (ancho, alto))
         #Enemigo mas rapido y con mas vida
         self.velocidad_x = random.choice([6, 7])
@@ -88,7 +88,7 @@ class Defender(Enemigo):
     def disparar(self):
         x = self.rect.centerx
         y = self.rect.y
-        imagen_misil = pygame.image.load(r"Python utn\jueguitos.py\imagenes\shotgreen.png")
+        imagen_misil = pygame.image.load(r"imagenes\shotgreen.png")
         #Tiene 3 misiles
         misil1 = Misil(x + 20, y + 75, imagen_misil, "abajo")
         misil2 = Misil(x - 20, y + 75, imagen_misil, "abajo")
